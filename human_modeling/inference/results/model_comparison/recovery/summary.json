@@ -1,0 +1,16 @@
+{
+  "complete_agents": 100,
+  "episodes_missing_extra_arm": {
+    "C_no_cognitive_cost": 0
+  },
+  "expected_episode_fits": 600,
+  "extra_arms": [
+    "C_no_cognitive_cost"
+  ],
+  "n_agents_requested": 100,
+  "n_agents_with_results": 100,
+  "n_episode_fits": 600,
+  "n_stalled_fits": 24,
+  "paired_arm": "B_no_heuristics",
+  "variant": "A_full"
+}

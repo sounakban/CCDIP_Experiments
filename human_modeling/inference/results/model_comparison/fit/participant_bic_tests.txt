@@ -1,0 +1,5 @@
+per-participant mean of BIC(smaller) - BIC(larger); positive favours the larger model; 95% participant bootstrap; Wilcoxon signed-rank, Holm across pairs
+
+no-heuristics over no-construals: 72.8 [59.6, 86.5], median 69.8, favouring larger 37/39, W = 4, p = 2.55e-11, Holm p = 2.55e-11
+fully-parameterized over no-construals: 153.5 [133.1, 173.1], median 153.1, favouring larger 39/39, W = 0, p = 3.64e-12, Holm p = 1.09e-11
+fully-parameterized over no-heuristics: 80.7 [71.1, 90.3], median 79.5, favouring larger 39/39, W = 0, p = 3.64e-12, Holm p = 1.09e-11

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pyodide Car Game (MDP + Gym)</title>
+  <style>
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      background: #0f0f12; 
+      color: #e5e5e5; 
+      font-family: system-ui, sans-serif;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .game-container {
+      margin: 0;
+      padding: 0;
+      background: #0f0f12;
+      color: #e5e5e5;
+      font-family: system-ui, sans-serif;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #hud { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 8px; font-size: 14px; z-index: 10; }
+    
+    #canvas { 
+      position: absolute;
+      bottom: 0px;
+      left: 50vw;
+      transform: translate(-50%, 0%);
+      background: #1a1a1a;
+      image-rendering: auto;
+      max-width: 95vw;
+      max-height: 100vh;
+    }
+    
+    #status { 
+      position: fixed; 
+      top: 50%; 
+      left: 88px; 
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.85); 
+      padding: 24px 32px; 
+      border-radius: 12px; 
+      font-size: 32px; 
+      font-weight: bold;
+      color: #4ade80;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      max-width: 350px;
+      line-height: 1.4;
+      letter-spacing: 0.5px;
+    }
+    a { color: #9ad; }
+    
+    /* Dialog overlay styles */
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .dialog-overlay.show {
+      display: flex;
+    }
+    
+    .dialog-box {
+      background: #1a1a1a;
+      border: 2px solid #4CAF50;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(76, 175, 80, 0.3);
+    }
+    
+    .dialog-box h2 {
+      margin: 0 0 16px 0;
+      color: #4CAF50;
+      font-size: 28px;
+    }
+    
+    .dialog-box p {
+      margin: 12px 0;
+      font-size: 18px;
+      color: #e5e5e5;
+    }
+    
+    .dialog-box .score {
+      font-size: 24px;
+      font-weight: bold;
+      color: #4ade80;
+      margin: 20px 0;
+    }
+    
+    .continue-button {
+      margin-top: 24px;
+      padding: 12px 32px;
+      font-size: 18px;
+      font-weight: bold;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .continue-button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+  </style>
+  <link rel="icon" type="image/png" href="drive_env/core/assets/car_player.png">
+</head>
+<body>
+  <div class="game-container" id="gameContainer">
+    <div id="hud">
+      <div><b>Controls:</b> WASD or IJKL keys — W/I accelerate, S/K brake, A/J left, D/L right</div>
+      <div>Goal: avoid crashing. Some objects are interactable (no crash).</div>
+    </div>
+    <canvas id="canvas" width="895" height="1075"></canvas>
+    <div id="status">Loading game…</div>
+  
+    <!-- Round completion dialog -->
+    <div id="roundDialog" class="dialog-overlay">
+      <div class="dialog-box">
+        <h2 id="dialogTitle">Round Complete!</h2>
+        <p id="dialogRound"></p>
+        <div class="score" id="dialogScore"></div>
+        <button id="continueBtn" class="continue-button">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.mjs";
+    const statusEl = document.getElementById("status");
+
+    // === State Management ===
+    let seeds = [];
+    let currentRun = 0;
+    let allScores = [];
+    
+    // === Canvas Scaling Configuration ===
+    const originalWidth = 895;
+    const originalHeight = 1075;
+    let resizeObserver = null;
+    
+    // === Responsive Scaling Utilities ===
+    // Helper function to apply scaled CSS properties
+    const scaleStyles = (element, styles, scaleFactor) => {
+      Object.entries(styles).forEach(([prop, value]) => {
+        const [base, min = 0] = Array.isArray(value) ? value : [value];
+        element.style[prop] = `${Math.max(min, base * scaleFactor)}px`;
+      });
+    };
+    
+    // Setup responsive canvas
+    function setupCanvas() {
+      const canvas = document.getElementById('canvas');
+      const container = document.getElementById('gameContainer');
+      
+      if (!canvas || !container) return;
+      
+      canvas.width = originalWidth;
+      canvas.height = originalHeight;
+      
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(container);
+      window.addEventListener('resize', handleResize);
+      handleResize();
+    }
+    
+    function handleResize() {
+      const canvas = document.getElementById('canvas');
+      const container = document.getElementById('gameContainer');
+      
+      if (!canvas || !container) return;
+      
+      const { clientWidth: width, clientHeight: height } = container;
+      const scaleFactor = Math.min(width / 1920, height / 1080);
+      const aspectRatio = originalWidth / originalHeight;
+      
+      // Calculate canvas display size
+      let displayWidth = width * 0.95;
+      let displayHeight = displayWidth / aspectRatio;
+      
+      if (displayHeight > height - 80) {
+        displayHeight = height - 80;
+        displayWidth = displayHeight * aspectRatio;
+      }
+      
+      canvas.style.width = `${displayWidth}px`;
+      canvas.style.height = `${displayHeight}px`;
+      
+      // Scale UI elements with configuration objects
+      const hud = document.getElementById('hud');
+      if (hud) {
+        scaleStyles(hud, {
+          fontSize: [14, 10],
+          top: [8],
+          left: [8],
+          borderRadius: [8, 4]
+        }, scaleFactor);
+        hud.style.padding = `${Math.max(4, 8 * scaleFactor)}px ${Math.max(6, 12 * scaleFactor)}px`;
+      }
+      
+      const status = document.getElementById('status');
+      if (status) {
+        scaleStyles(status, {
+          fontSize: [32, 16],
+          left: [88, 20],
+          maxWidth: [350],
+          borderRadius: [12, 6]
+        }, scaleFactor);
+        status.style.padding = `${Math.max(12, 24 * scaleFactor)}px ${Math.max(16, 32 * scaleFactor)}px`;
+      }
+      
+      // Scale dialog elements
+      document.querySelectorAll('.dialog-box').forEach(box => {
+        scaleStyles(box, {
+          maxWidth: [500, 300],
+          borderRadius: [12, 6],
+          borderWidth: [2, 1]
+        }, scaleFactor);
+        box.style.padding = `${Math.max(16, 32 * scaleFactor)}px`;
+      });
+      
+      document.querySelectorAll('.dialog-box h2').forEach(title => {
+        scaleStyles(title, {
+          fontSize: [28, 16],
+          marginBottom: [16, 8]
+        }, scaleFactor);
+      });
+      
+      document.querySelectorAll('.dialog-box p, .dialog-box .score').forEach(text => {
+        const isScore = text.classList.contains('score');
+        scaleStyles(text, { fontSize: [isScore ? 24 : 18, 12] }, scaleFactor);
+        text.style.margin = `${Math.max(6, (isScore ? 20 : 12) * scaleFactor)}px 0`;
+      });
+      
+      document.querySelectorAll('.continue-button').forEach(button => {
+        scaleStyles(button, {
+          fontSize: [18, 14],
+          borderRadius: [8, 4],
+          marginTop: [24, 12]
+        }, scaleFactor);
+        const pad = Math.max(8, 12 * scaleFactor);
+        button.style.padding = `${pad}px ${Math.max(16, 32 * scaleFactor)}px`;
+      });
+    }
+
+    async function main() {
+      try {
+        setupCanvas();
+        
+        const updateStatus = (msg) => statusEl.textContent = msg;
+        updateStatus("Loading game…");
+        
+        globalThis.pyodide = await loadPyodide({ 
+          stdout: (s) => console.log(s), 
+          stderr: (s) => console.error(s) 
+        });
+        
+        updateStatus("Loading packages…");
+        await pyodide.loadPackage("numpy");
+
+        // Fetch and write Python files
+        const files = [
+          "drive_env/interface_web.py",
+          "drive_env/core/config.py",
+          "drive_env/core/mdp.py",
+          "drive_env/core/utils.py",
+          "drive_env/core/telemetry.py",
+          "drive_env/core/maps/objects.py",
+          "drive_env/core/maps/mapgenerator.py"
+        ];
+
+        ['drive_env', 'drive_env/core', 'drive_env/core/maps'].forEach(dir => 
+          pyodide.FS.mkdir(dir)
+        );
+        
+        await Promise.all(files.map(async (f) => {
+          const txt = await (await fetch(f)).text();
+          pyodide.FS.writeFile(f, txt);
+        }));
+
+        // Get seeds from config and shuffle
+        updateStatus("Preparing rounds…");
+        seeds = (await pyodide.runPythonAsync('from drive_env.core.config import MAP_SEEDS; MAP_SEEDS'))
+          .toJs()
+          .sort(() => Math.random() - 0.5);
+        
+        console.log("Running with shuffled seeds:", seeds);
+        await runRound();
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Error: " + err;
+      }
+    }
+
+    async function runRound() {
+      const currentSeed = seeds[currentRun];
+      statusEl.textContent = `Round ${currentRun + 1} of ${seeds.length} - Ready!`;
+      
+      await globalThis.pyodide.runPythonAsync(`
+from drive_env import interface_web
+
+def on_game_complete(score):
+    from js import handleGameComplete
+    handleGameComplete(score)
+
+await interface_web.wait_for_images()
+await interface_web.game_loop(seed=${currentSeed}, on_complete=on_game_complete)
+      `);
+    }
+
+    // Called from Python when game completes
+    globalThis.handleGameComplete = (score) => {
+      console.log(`Round ${currentRun + 1} completed with score: ${score}`);
+      allScores.push(score);
+      showRoundDialog(score);
+    };
+    
+    // === Dialog Management ===
+    function showRoundDialog(score) {
+      const dialog = document.getElementById('roundDialog');
+      const elements = {
+        title: document.getElementById('dialogTitle'),
+        round: document.getElementById('dialogRound'),
+        score: document.getElementById('dialogScore'),
+        button: document.getElementById('continueBtn')
+      };
+      
+      handleResize();
+      
+      const hasMoreRounds = currentRun < seeds.length - 1;
+      const avgScore = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+      
+      // Configure dialog content based on completion status
+      const config = hasMoreRounds ? {
+        title: 'Round Complete!',
+        round: `Round ${currentRun + 1} of ${seeds.length}`,
+        score: `Score: ${score.toFixed(2)}`,
+        buttonText: 'Continue to Next Round',
+        buttonAction: () => {
+          dialog.classList.remove('show');
+          currentRun++;
+          statusEl.textContent = `Round ${currentRun + 1} of ${seeds.length}`;
+          setTimeout(runRound, 500);
+        }
+      } : {
+        title: 'All Rounds Complete!',
+        round: `Completed ${allScores.length} rounds`,
+        score: `Final Score: ${score.toFixed(2)}<br>Average: ${avgScore.toFixed(2)}`,
+        buttonText: 'Finish',
+        buttonAction: () => {
+          dialog.classList.remove('show');
+          showFinalResults();
+        }
+      };
+      
+      elements.title.textContent = config.title;
+      elements.round.textContent = config.round;
+      elements.score.innerHTML = config.score;
+      elements.button.textContent = config.buttonText;
+      elements.button.onclick = config.buttonAction;
+      
+      dialog.classList.add('show');
+    }
+
+    function showFinalResults() {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const { width, height } = canvas;
+      
+      const avgScore = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+      const finalScore = allScores[allScores.length - 1];
+      
+      handleResize();
+      
+      // Clear and draw results
+      ctx.fillStyle = "#101418";
+      ctx.fillRect(0, 0, width, height);
+      
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      const textLines = [
+        { text: "All Rounds Complete!", font: "48px sans-serif", color: "#4CAF50", y: -100 },
+        { text: `Completed ${allScores.length} rounds`, font: "28px sans-serif", color: "#e5e5e5", y: -30 },
+        { text: `Final score: ${finalScore.toFixed(2)}`, font: "28px sans-serif", color: "#e5e5e5", y: 20 },
+        { text: `Average score: ${avgScore.toFixed(2)}`, font: "28px sans-serif", color: "#e5e5e5", y: 70 },
+        { text: `All scores: ${allScores.map(s => s.toFixed(1)).join(', ')}`, font: "18px sans-serif", color: "#9ad", y: 120 }
+      ];
+      
+      textLines.forEach(({ text, font, color, y }) => {
+        ctx.font = font;
+        ctx.fillStyle = color;
+        ctx.fillText(text, centerX - ctx.measureText(text).width / 2, centerY + y);
+      });
+      
+      statusEl.textContent = `All rounds complete! Average: ${avgScore.toFixed(2)}`;
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => resizeObserver?.disconnect());
+
+    main();
+  </script>
+</body>
+</html>

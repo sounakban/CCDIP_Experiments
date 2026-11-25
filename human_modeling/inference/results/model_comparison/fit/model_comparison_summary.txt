@@ -1,0 +1,14 @@
+model comparison over 230 paired episodes (0 dropped: absent from at least one variant)
+BIC = k ln(n) - 2 logL at the peak; delta BIC is against B_no_heuristics, negative favours the variant; interval = 95% participant bootstrap
+
+variant                 k   mean NLL     SE   mean BIC     SE  dBIC vs ref                95% CI  fav%  best  noprog
+C_no_cognitive_cost     3     3357.7   56.6     6736.3  113.3        +72.4        [+59.1, +85.9]   19%     0       0
+B_no_heuristics         4     3318.1   55.7     6663.8  111.5         +0.0          [+0.0, +0.0]    0%     4      18
+A_full                  8     3264.1   55.1     6583.6  110.3        -80.2        [-89.9, -70.6]   96%   212       0
+ambiguous (dBIC < 10)                                                                                     14
+
+nesting (the larger model contains the smaller, so its peak logL must be >= the smaller's; a violation is the optimiser stopping short):
+  C_no_cognitive_cost    in B_no_heuristics        violated on 17 episodes, worst shortfall 0.07 nats
+  B_no_heuristics        in A_full                 violated on 0 episodes, worst shortfall 0.00 nats
+
+NOTE: 18 fits never improved on the smaller model's solution they started from (no_progress = 1, warm_start = that model). Each ties that model's likelihood, so it can understate the larger model but never favour it. It IS the estimate when every coefficient the larger model adds sits at a bound there (B started from C with cognitive cost at 0: Entry 35 addendum 3), and a stall otherwise. The fit log says which for each episode.

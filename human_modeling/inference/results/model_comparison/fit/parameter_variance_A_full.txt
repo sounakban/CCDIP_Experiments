@@ -1,0 +1,11 @@
+fully-parameterized: variance of the fitted coefficients across 230 episodes of 39 participants
+route-adjusted between / within variance (SD in brackets), share between [95% participant bootstrap]; raw share without route adjustment last
+
+hlp_collision_penalty          between     5.555 (2.36)  within     7.394 (2.72)  share +0.43 [+0.23, +0.58]  raw share +0.41
+hlp_cognitive_cost_coef        between 0.0008779 (0.0296)  within   0.00207 (0.0455)  share +0.30 [+0.15, +0.44]  raw share +0.28
+hlp_goal_proximity_cost_coef   between     0.468 (0.684)  within    0.6371 (0.798)  share +0.42 [+0.28, +0.55]  raw share +0.36
+hlp_goal_flag_dist_penalty     between -1.029e-05 (0)  within  0.005435 (0.0737)  share -0.00 [-0.01, +0.15]  raw share -0.01
+lead_vehicle_inverse_ttc       between    0.3968 (0.63)  within     2.868 (1.69)  share +0.12 [-0.00, +0.25]  raw share +0.11
+cars_in_goal_path              between    0.7073 (0.841)  within     14.29 (3.78)  share +0.05 [-0.04, +0.14]  raw share +0.04
+closest_vehicle_distance       between   0.01001 (0.1)  within    0.1895 (0.435)  share +0.05 [-0.02, +0.13]  raw share +0.04
+mean_vehicle_distance          between  0.006079 (0.078)  within      0.11 (0.332)  share +0.05 [-0.03, +0.15]  raw share +0.04

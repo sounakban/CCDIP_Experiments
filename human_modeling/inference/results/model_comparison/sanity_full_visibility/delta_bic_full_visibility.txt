@@ -1,0 +1,17 @@
+SANITY CHECK, not a finding (implementation.md Entry 36).
+delta BIC per episode = BIC(full-visibility) - BIC(no-cognitive-cost); positive means full visibility fits the human actions worse. Both models have 3 free coefficients, so delta BIC = 2 x (NLL difference).
+SE naive = SD/sqrt(n episodes); SE bootstrap and the 95% interval resample whole participants (5000 draws). Verdict: equivalence at +-10 per episode on the 95% interval.
+
+against the refit (same job) no-cognitive-cost fit: episodes 230, participants 39
+  mean +862.86  SD 397.08  SE naive 26.18  SE bootstrap 45.38  95% CI [+775.42, +953.54]  median +843.80
+  full visibility better on 0 episodes; |delta| < 10 on 0
+  VERDICT: meaningful change
+
+against the stored (October run) no-cognitive-cost fit: episodes 230, participants 39
+  mean +862.86  SD 397.08  SE naive 26.18  SE bootstrap 45.38  95% CI [+775.42, +953.54]  median +843.80
+  full visibility better on 0 episodes; |delta| < 10 on 0
+  VERDICT: meaningful change
+
+refit check: the no-cognitive-cost model refitted in this job against the stored fit, 230 episodes
+  |logL_mode difference| in nats: max 0.0476, median 4.98e-05; above 0.1 nats on 0 episodes, above 1 nat on 0
+  largest fitted-coefficient difference: max 0.268, median 9.46e-07

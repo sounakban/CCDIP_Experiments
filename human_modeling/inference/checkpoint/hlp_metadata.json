@@ -1,0 +1,78 @@
+{
+  "run_name": "CarDrivingEnv-v0__hlp_minspd15_extendParams__158__310553__1788309855",
+  "seed": 158,
+  "num_envs": 432,
+  "num_hlp_steps": 200,
+  "sub_episode_horizon": 100,
+  "total_timesteps": 1500000000,
+  "learning_rate": 0.00025,
+  "gamma": 0.5,
+  "gae_lambda": 0.95,
+  "num_minibatches": 16,
+  "update_epochs": 4,
+  "clip_coef": 0.2,
+  "ent_coef": 0.01,
+  "vf_coef": 0.5,
+  "hlp_num_car_slots": 6,
+  "hlp_mask_head": "pooled",
+  "hlp_cog_per_step": true,
+  "hlp_hidden_size": 128,
+  "hlp_critic_hidden_size_multiplier": 2,
+  "hlp_input_dim": 6587,
+  "hlp_reach_reward": 0.0,
+  "hlp_miss_penalty": 0.0,
+  "hlp_env_reward_coef": 0.0,
+  "hlp_selects_goal": true,
+  "num_goal_dy_bins": 24,
+  "goal_dy_bin_width_eff": 0.4916666666666667,
+  "hlp_param_config": [
+    {
+      "name": "hlp_collision_penalty",
+      "min": 0.0,
+      "max": 10.0
+    },
+    {
+      "name": "hlp_cognitive_cost_coef",
+      "min": 0.0,
+      "max": 0.15
+    },
+    {
+      "name": "hlp_goal_proximity_cost_coef",
+      "min": 0.0,
+      "max": 6.0
+    },
+    {
+      "name": "hlp_flag_miss_penalty",
+      "min": 0.0,
+      "max": 0.0
+    },
+    {
+      "name": "hlp_flag_collect_reward",
+      "min": 0.0,
+      "max": 0.0
+    },
+    {
+      "name": "hlp_goal_flag_dist_penalty",
+      "min": 0.0,
+      "max": 1.5
+    }
+  ],
+  "theta_obs_normalized": true,
+  "llp_checkpoint_dir": "modules/base_models/trained_policies/LLP/llp_missTerm_varDensity__260814_2313__1786763626",
+  "goal_forward_m_min": 0.2,
+  "goal_forward_m_max": 12.0,
+  "goal_radius_m": 1.0,
+  "llp_reach_reward": 0.0,
+  "llp_miss_penalty": 0.3,
+  "llp_truncation_penalty": 0.0,
+  "llp_miss_ends_subepisode": true,
+  "llp_env_reward_coef": 0.1,
+  "car_buffer_y_min": 1,
+  "car_buffer_y_max": 3,
+  "hlp_goal_flag_hinge_m": 0.5,
+  "anneal_lr": true,
+  "y_max": 1344.2,
+  "visible_width": 8.0,
+  "visible_height": 11.0,
+  "max_speed": 30.0
+}

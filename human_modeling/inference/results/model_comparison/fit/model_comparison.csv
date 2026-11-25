@@ -1,0 +1,4 @@
+variant,display,n_episodes,n_free_params,nll_mean,nll_se,bic_mean,bic_se,delta_bic_vs_reference_mean,delta_bic_ci_lo,delta_bic_ci_hi,share_episodes_favouring_variant,best_fit_count,n_ambiguous,n_stalled_fits,n_no_progress_from_smaller,nested_in,nesting_violations,worst_nesting_shortfall_nats,reference
+C_no_cognitive_cost,no-construals,230,3,3357.728340364192,56.60915930982522,6736.260884744581,113.25184905475838,72.41563581677809,59.095068400859404,85.94509630693999,0.19130434782608696,0,14,0,0,,,,B_no_heuristics
+B_no_heuristics,no-heuristics,230,4,3318.0531551197696,55.724154995715935,6663.845248927803,111.49250967154313,0.0,0.0,0.0,0.0,4,14,18,18,C_no_cognitive_cost,17,0.06657739601723733,B_no_heuristics
+A_full,fully-parameterized,230,8,3264.0706336816734,55.11617561533038,6583.619144739877,110.31990622029434,-80.22610418792868,-89.9480517671793,-70.59133384533449,0.9608695652173913,212,14,0,0,B_no_heuristics,0,0.0,B_no_heuristics

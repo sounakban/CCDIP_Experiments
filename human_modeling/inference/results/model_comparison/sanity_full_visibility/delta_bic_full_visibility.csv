@@ -1,0 +1,3 @@
+comparison,reference_source,n_episodes,n_participants,mean,sd,se_naive,se_bootstrap,ci_lo,ci_hi,median,n_full_visibility_better,n_within_margin,margin,verdict
+BIC(full-visibility) - BIC(no-cognitive-cost),refit (same job),230,39,862.8609656828932,397.0757925580629,26.182402407094283,45.38368738693428,775.4157403922261,953.5356466712092,843.8039772375819,0,0,10.0,meaningful change
+BIC(full-visibility) - BIC(no-cognitive-cost),stored (October run),230,39,862.8605161122472,397.0759333493931,26.18241169059968,45.38371817274972,775.4157225047511,953.5356433698843,843.8041443977495,0,0,10.0,meaningful change
