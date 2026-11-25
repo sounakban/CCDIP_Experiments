@@ -16,6 +16,8 @@
 #   3. Submit from the clone's root (the job finds the clone through SLURM_SUBMIT_DIR, the
 #      overlay and slurm_output/ in the clone's parent directory; no path is written in here):
 #        sbatch extras/server_instructions/scripts/train_hlr_hlp.sbatch
+#      For an email when it ends, give it on the command line (never written in here):
+#        sbatch --mail-type=END --mail-user=<address> extras/server_instructions/scripts/train_hlr_hlp.sbatch
 #   4. Watch it:
 #        squeue --me
 #        tail -f ../slurm_output/train_SSP_<JOBID>.out
@@ -34,7 +36,9 @@
 #   attentional cost per step, the theta ranges collision [0, 10], attention [0, 0.15],
 #   goal proximity [0, 6], flag terms fixed at 0, goal-flag distance [0, 1.5].
 #   SP-side settings (goal range, sub-episode horizon, miss penalty) are read
-#   from the SP checkpoint's hrl_llp_metadata.json by the trainer, never from here.
+#   from the SP checkpoint's hrl_llp_metadata.json by the trainer, never from here. A PPO
+#   constant equal to the trainer's default (train_hlp_PPO.py Args) is not passed; the default
+#   supplies it.
 # ============================================================================
 #SBATCH --job-name=train_SSP
 #SBATCH --nodes=1
@@ -96,16 +100,9 @@ python modules/base_models/SSP/train_hlp_PPO.py \
   --out_path                ${OUT_PATH} \
   --num_envs                432 \
   --num_hlp_steps           200 \
-  --learning_rate           2.5e-4 \
   --anneal_lr \
   --gamma                   0.5 \
-  --gae_lambda              0.95 \
   --num_minibatches         16 \
-  --update_epochs           4 \
-  --clip_coef               0.2 \
-  --ent_coef                0.01 \
-  --vf_coef                 0.5 \
-  --max_grad_norm           0.5 \
   --hlp_num_car_slots       6 \
   --hlp_hidden_size         128 \
   --hlp_critic_hidden_size_multiplier  2 \

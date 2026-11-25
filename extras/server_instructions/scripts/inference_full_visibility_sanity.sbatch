@@ -16,6 +16,8 @@
 #           human_modeling/data/exp1_filtered.json
 #   3. Submit from that same directory (one job, so plain sbatch):
 #        sbatch extras/server_instructions/scripts/inference_full_visibility_sanity.sbatch
+#      For an email when it ends, give it on the command line (never written in here):
+#        sbatch --mail-type=END --mail-user=<address> extras/server_instructions/scripts/inference_full_visibility_sanity.sbatch
 #   4. Watch it:
 #        squeue --me
 #        tail -f ../slurm_output/inference_fullvis_<JOBID>.out

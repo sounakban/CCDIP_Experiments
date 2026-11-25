@@ -9,6 +9,8 @@
 #   2. Submit from that directory (the job finds the clone through SLURM_SUBMIT_DIR, the
 #      overlay and slurm_output/ in the clone's parent directory; no path is written in here):
 #        sbatch extras/server_instructions/scripts/train_hlr_llp.sbatch
+#      For an email when it ends, give it on the command line (never written in here):
+#        sbatch --mail-type=END --mail-user=<address> extras/server_instructions/scripts/train_hlr_llp.sbatch
 #   3. Watch it:
 #        squeue --me
 #        tail -f ../slurm_output/train_SP_<JOBID>.out
@@ -27,7 +29,8 @@
 #   The PPO block (learning rate, annealing, entropy, minibatches) is not in that metadata;
 #   it was CONFIRMED against the original run's full argument table, the "hyperparameters"
 #   text in the TensorBoard event file of its run directory (2026-11-23): every value below
-#   is the original's.
+#   is the original's. A PPO constant equal to the trainer's default (train_llp_PPO.py Args)
+#   is not passed; the default supplies it.
 # ============================================================================
 #SBATCH --job-name=train_SP
 #SBATCH --nodes=1
@@ -88,7 +91,6 @@ python modules/base_models/SP/train_llp_PPO.py \
   --hidden_size               256 \
   --learning_rate             1e-3 \
   --anneal_lr \
-  --ent_coef                  0.01 \
   --num_minibatches           216 \
   --goal_forward_m_min        0.2 \
   --goal_forward_m_max        12.0 \
